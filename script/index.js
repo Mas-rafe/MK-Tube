@@ -17,8 +17,15 @@
 //     "description": "Dive into the rhythm of 'Shape of You,' a captivating track that blends pop sensibilities with vibrant beats. Created by Olivia Mitchell, this song has already gained 100K views since its release. With its infectious melody and heartfelt lyrics, 'Shape of You' is perfect for fans looking for an uplifting musical experience. Let the music take over as Olivia's vocal prowess and unique style create a memorable listening journey."
 // }
 
+const showLoader = () => {
+  document.getElementById("loader").classList.remove("hidden");
+  document.getElementById("video-container").classList.add("hidden");
+}
+const hideLoader = () => {
+  document.getElementById("loader").classList.add("hidden");
+  document.getElementById("video-container").classList.remove("hidden");
+}
 
-console.log("hello")
 function removeActiveClass() {
   const activeButtons = document.getElementsByClassName("active");
   for (let btn of activeButtons) {
@@ -37,12 +44,17 @@ function loadCategories() {
 
 //used for fetch the videos 
 function loadVideos(searchText = "") {
+
   fetch(`https://openapi.programming-hero.com/api/phero-tube/videos?title=${searchText}`)
     .then(res => res.json())
-    .then((data) => displayVideos(data.videos));
+    .then((data) => {
+      removeActiveClass();
+      document.getElementById("btn-all").classList.add("active");
+      displayVideos(data.videos)
+    });
 }
 const loadCategoryVideos = (id) => {
-
+showLoader()
   const url = `https://openapi.programming-hero.com/api/phero-tube/category/${id}`
 
   fetch(url)
@@ -54,6 +66,19 @@ const loadCategoryVideos = (id) => {
       //console.log(clickedButton)
       displayVideos(data.category)
     })
+
+  //used for adding the nav buttons(music,comedy,drawing) by fetching API
+  function displayCategories(categories) {
+    const categoryContainer = document.getElementById("category-container");
+    for (cat of categories) {
+      const categoryDiv = document.createElement("div");
+      categoryDiv.innerHTML = `
+           <button id="btn-${cat.category_id}" onclick="loadCategoryVideos(${cat.category_id})" class="btn btn-sm hover:bg-[#FF1F3D] hover:text-white">${cat.category}</button>
+         `;
+      //console.log(categoryDiv)
+      categoryContainer.append(categoryDiv)
+    }
+  }
 }
 const loadVideoDetails = (videoId) => {
   console.log(videoId)
@@ -91,8 +116,8 @@ function displayCategories(categories) {
   for (cat of categories) {
     const categoryDiv = document.createElement("div");
     categoryDiv.innerHTML = `
-           <button id="btn-${cat.category_id}" onclick="loadCategoryVideos(${cat.category_id})" class="btn btn-sm hover:bg-[#FF1F3D] hover:text-white">${cat.category}</button>
-         `;
+               <button id="btn-${cat.category_id}" onclick="loadCategoryVideos(${cat.category_id})" class="btn btn-sm hover:bg-[#FF1F3D] hover:text-white">${cat.category}</button>
+             `;
     //console.log(categoryDiv)
     categoryContainer.append(categoryDiv)
   }
@@ -106,6 +131,7 @@ function displayCategories(categories) {
 const displayVideos = (videos) => {
   const videoContainer = document.getElementById("video-container");
   //videoContainer.innerHTML="" : used for add datas after removing the previous datas
+ showLoader();
   videoContainer.innerHTML = "";
   if (videos.length == 0) {
     videoContainer.innerHTML = `
@@ -114,6 +140,7 @@ const displayVideos = (videos) => {
             <h2 class="text-2xl font-bold">Opps!!sorry, There is no content here</h2>
         </div>
     `;
+    hideLoader();
     return;
   }
   videos.forEach(video => {
@@ -137,9 +164,9 @@ const displayVideos = (videos) => {
                     <h2 class="text-base font-semibold">Midnight Serenade</h2>
                     <div class="flex gap-2">
                         <p class="text-sm text-gray-400 ">${video.authors[0].profile_name}</p>
-                         ${video.authors[0].verified == true ? 
-                          ` <img class="w-5 h-5" src="https://img.icons8.com/?size=60&id=lalayI2ulYNt&format=png" alt="">`: ``
-                         } 
+                         ${video.authors[0].verified == true ?
+        ` <img class="w-5 h-5" src="https://img.icons8.com/?size=60&id=lalayI2ulYNt&format=png" alt="">` : ``
+      } 
                     </div>
                     <p class="text-sm text-gray-400">${video.others.views} views</p>
                 </div>
@@ -148,13 +175,14 @@ const displayVideos = (videos) => {
         </div>
  `
     videoContainer.append(videoCard)
-
+hideLoader();
   });
+
 }
 
-document.getElementById("search-input").addEventListener("keyup",(e) => {
-   const input = e.target.value;
-   loadVideos(input);
+document.getElementById("search-input").addEventListener("keyup", (e) => {
+  const input = e.target.value;
+  loadVideos(input);
 
 });
 
